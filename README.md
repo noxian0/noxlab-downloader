@@ -148,4 +148,4 @@ Browser cookies are only used if you choose that option.
 
 NoxLab Downloader is free to use, but it may not be sold, included in paid
 software, included in freemium software, or reuploaded/modified without the
-author's permission. See [LICENSE.txt](LICENSE.txt).
+author's permission. See [LICENSE](LICENSE).
