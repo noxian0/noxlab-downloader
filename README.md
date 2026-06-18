@@ -24,7 +24,7 @@ This project uses third-party software that is not owned by NoxLab:
 - `FFmpeg`: merges video and audio streams, converts audio formats, and helps
   create playable files such as MP4 with AAC audio.
 
-See [LICENSE.txt](LICENSE.txt) for the NoxLab Downloader license and third-party
+See [LICENSE](LICENSE) for the NoxLab Downloader license and third-party
 notices.
 
 ## Setup
