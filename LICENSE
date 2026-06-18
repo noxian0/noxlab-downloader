@@ -1,0 +1,81 @@
+NoxLab Downloader Custom License
+
+Copyright (c) 2026 noxian0 | (https://github.com/noxian0/noxlab).
+
+This license applies only to the NoxLab Downloader project files, including
+the downloader script, launcher files, setup files, README, branding, and any
+other original NoxLab Downloader project content.
+
+1. Permission To Use
+
+NoxLab Downloader is free to use for personal, non-commercial use.
+
+2. Reuploading, Redistribution, And Modification
+
+You may not reupload, redistribute, publish, fork, modify, release modified
+versions, or claim this project as your own unless you have the original
+author's permission.
+
+3. No Selling Or Paid Bundling
+
+You may not sell NoxLab Downloader.
+
+You may not include NoxLab Downloader in:
+
+- paid software
+- paid bundles
+- freemium software
+- subscription products
+- paid installers
+- monetized download packages
+- any product or service where access, features, convenience, support, or
+  distribution is sold
+
+4. No Warranty
+
+NoxLab Downloader is provided "as is", without warranty of any kind. The author
+does not guarantee that it will work, stay compatible with websites, avoid
+account restrictions, preserve files, or meet any specific need.
+
+5. User Responsibility
+
+You are responsible for how you use this tool. Only download content that you
+own, have permission to download, or are legally allowed to save.
+
+The author is not responsible for piracy, copyright infringement, account bans,
+website terms-of-service violations, data loss, legal issues, damages, or any
+other consequences caused by use or misuse of this tool. Use it at your own
+risk.
+
+6. Third-Party Software Notice
+
+NoxLab Downloader uses third-party software that is not owned by NoxLab or the
+original author. Those projects keep their own licenses and copyrights.
+
+yt-dlp
+
+- Purpose: downloads media from supported websites and provides format
+  selection.
+- License: Unlicense, according to the installed package metadata.
+- NoxLab Downloader calls yt-dlp through Python but does not own yt-dlp.
+
+imageio-ffmpeg
+
+- Purpose: provides a Python wrapper/helper for using FFmpeg.
+- License: BSD 2-Clause License, according to the installed package metadata.
+- NoxLab Downloader uses it to find and run an FFmpeg executable.
+
+FFmpeg
+
+- Purpose: merges separate video/audio streams and converts audio/video formats.
+- License: the bundled executable reports GNU General Public License version 3
+  or later when queried with `ffmpeg -L`.
+- NoxLab Downloader does not own FFmpeg.
+
+This custom license does not replace, remove, or change the licenses of yt-dlp,
+imageio-ffmpeg, FFmpeg, or any other third-party dependency.
+
+7. Agreement
+
+By using, copying, redistributing, modifying, or running NoxLab Downloader, you
+agree to this license. If you do not agree, do not use the project.
