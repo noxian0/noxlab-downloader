@@ -29,6 +29,16 @@ notices.
 
 ## Setup
 
+Python is required to use this tool. Install Python 3.10 or newer from:
+
+https://www.python.org/downloads/
+
+During installation, enable this option:
+
+```text
+Add python.exe to PATH
+```
+
 Run this once before using the downloader:
 
 ```bat
