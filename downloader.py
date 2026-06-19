@@ -211,6 +211,8 @@ def write_banner() -> None:
     print(color_text(rule, "dark_red"))
     print(color_text("  [ NoxLab ]  Discord: noxian_  |  GitHub: noxian0", "gray"))
     print(color_text("  Paste a link to download from YouTube, Instagram, TikTok, X/Twitter, and more.", "gray"))
+    if not detect_js_runtime("auto"):
+        print(color_text("  Node.js was not found. Some YouTube videos may fail until Node.js LTS is installed.", "dark_gray"))
     print()
 
 
@@ -463,6 +465,7 @@ def print_download_summary(result: int, output_dir: Path, files: list[Path]) -> 
     else:
         print(color_text(f"Download failed. Exit code: {result}", "red"))
         print("Try updating the engine with: noxdl.bat --update-engine")
+        print("If YouTube still fails, install Node.js LTS from https://nodejs.org/")
         print("For restricted/login-only links, retry with browser cookies enabled.")
         print("If one resolution or format fails, try a lower resolution or MKV/WebM.")
 

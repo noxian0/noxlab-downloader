@@ -39,6 +39,17 @@ During installation, enable this option:
 Add python.exe to PATH
 ```
 
+Node.js LTS is strongly recommended and is required for some YouTube videos.
+Install it from:
+
+https://nodejs.org/
+
+After installing Node.js, close and reopen Command Prompt. You can check it with:
+
+```bat
+node --version
+```
+
 Run this once before using the downloader:
 
 ```bat
