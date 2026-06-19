@@ -462,6 +462,9 @@ def print_download_summary(result: int, output_dir: Path, files: list[Path]) -> 
         print(color_text("Done.", "green"))
     else:
         print(color_text(f"Download failed. Exit code: {result}", "red"))
+        print("Try updating the engine with: noxdl.bat --update-engine")
+        print("For restricted/login-only links, retry with browser cookies enabled.")
+        print("If one resolution or format fails, try a lower resolution or MKV/WebM.")
 
     if files:
         print("Saved to:")
