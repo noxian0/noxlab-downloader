@@ -6,7 +6,7 @@ NoxLab Downloader is a Windows app and command prompt tool for downloading
 video or audio from links supported by `yt-dlp`, including YouTube, Instagram,
 TikTok, X/Twitter, SoundCloud, and many other sites.
 
-Downloads are saved in the `downloads` folder and are marked with `[NOXLAB]`
+Downloads are saved in the `downloads` folder and are marked with `[NOXLAB-DOWNLOADER]`
 in the filename.
 
 ## Important

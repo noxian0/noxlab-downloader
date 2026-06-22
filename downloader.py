@@ -393,7 +393,7 @@ def video_selector(resolution: str, muted: bool, output_format: str) -> str:
 def build_download_command(args: argparse.Namespace) -> list[str]:
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_template = str(output_dir / "%(title).180B [NOXLAB].%(ext)s")
+    output_template = str(output_dir / "%(title).180B [NOXLAB-DOWNLOADER].%(ext)s")
 
     command = yt_dlp_command()
 
