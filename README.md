@@ -127,6 +127,22 @@ Use browser cookies, useful for some private or login-only links:
 noxdl.bat "https://www.instagram.com/reel/SHORTCODE/" --cookies-browser edge
 ```
 
+Opera GX cookies can be used with:
+
+```bat
+noxdl.bat "https://soundcloud.com/example/track" --cookies-browser opera-gx
+```
+
+Opera GX VPN only affects traffic inside Opera GX. It does not automatically
+route Python, yt-dlp, or FFmpeg through the browser VPN. If a song/video is
+country blocked, use a system-wide VPN or a proxy that affects all apps.
+
+If you have a proxy URL, you can pass it directly:
+
+```bat
+noxdl.bat "https://soundcloud.com/example/track" --proxy "http://127.0.0.1:8080"
+```
+
 Show every format available for a link:
 
 ```bat
@@ -150,6 +166,8 @@ NoxLab Downloader runs locally on your PC. During normal use it can:
 - contact the website from the link you paste
 - optionally read browser cookies if you choose `--cookies-browser` or select
   cookies in the menu
+- read Opera GX cookies from your Opera GX profile when `opera-gx` is selected
+- use a proxy if you provide one with `--proxy` or enter one in the menu
 - allow yt-dlp to fetch its recommended YouTube JavaScript helper from GitHub
   when a JavaScript runtime is available
 

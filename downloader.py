@@ -14,7 +14,7 @@ APP_NAME = "Noxlab Downloader"
 VIDEO_FORMATS = ("mp4", "mkv", "webm")
 AUDIO_FORMATS = ("mp3", "m4a", "wav", "flac", "opus")
 RESOLUTIONS = ("best", "2160", "1440", "1080", "720", "480", "360", "240")
-COOKIE_BROWSERS = ("none", "chrome", "edge", "firefox", "brave", "opera", "vivaldi")
+COOKIE_BROWSERS = ("none", "chrome", "edge", "firefox", "brave", "opera", "opera-gx", "vivaldi")
 JS_RUNTIMES = ("auto", "none", "node", "deno")
 ANSI = {
     "reset": "\033[0m",
@@ -74,6 +74,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Use browser cookies for sites that require login, such as some Instagram links.",
     )
     parser.add_argument(
+        "--proxy",
+        default=None,
+        help="Proxy URL for region-blocked links, e.g. http://127.0.0.1:8080 or socks5://127.0.0.1:1080.",
+    )
+    parser.add_argument(
         "--js-runtime",
         choices=JS_RUNTIMES,
         default="auto",
@@ -130,6 +135,15 @@ def detect_ffmpeg() -> str | None:
         return None
 
     return imageio_ffmpeg.get_ffmpeg_exe()
+
+
+def browser_cookie_source(browser: str) -> str:
+    if browser == "opera-gx":
+        opera_gx_profile = Path(os.environ.get("APPDATA", "")) / "Opera Software" / "Opera GX Stable"
+        if opera_gx_profile.exists():
+            return f"opera:{opera_gx_profile}"
+        return "opera:Opera GX Stable"
+    return browser
 
 
 def yt_dlp_command() -> list[str]:
@@ -296,6 +310,10 @@ def interactive_args(args: argparse.Namespace, allow_empty_exit: bool = False) -
         if use_cookies:
             args.cookies_browser = choose("Browser", COOKIE_BROWSERS[1:], "edge")
 
+    if args.proxy is None:
+        proxy = read_input("Proxy URL for country/region blocks (optional, press Enter to skip): ").strip()
+        args.proxy = proxy or None
+
     args.playlist = ask_yes_no("Download full playlist if the link is a playlist", args.playlist)
     return args
 
@@ -385,7 +403,10 @@ def build_download_command(args: argparse.Namespace) -> list[str]:
             command += ["--remote-components", args.remote_components]
 
     if args.cookies_browser != "none":
-        command += ["--cookies-from-browser", args.cookies_browser]
+        command += ["--cookies-from-browser", browser_cookie_source(args.cookies_browser)]
+
+    if args.proxy:
+        command += ["--proxy", args.proxy]
 
     if args.list_formats:
         return command + ["--list-formats", args.url]
@@ -467,6 +488,7 @@ def print_download_summary(result: int, output_dir: Path, files: list[Path]) -> 
         print("Try updating the engine with: noxdl.bat --update-engine")
         print("If YouTube still fails, install Node.js LTS from https://nodejs.org/")
         print("For restricted/login-only links, retry with browser cookies enabled.")
+        print("For country/region blocks, use a system-wide VPN or a proxy with --proxy.")
         print("If one resolution or format fails, try a lower resolution or MKV/WebM.")
 
     if files:
