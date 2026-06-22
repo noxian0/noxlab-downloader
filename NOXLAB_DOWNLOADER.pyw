@@ -117,6 +117,11 @@ class DownloaderApp(tk.Tk):
         style.configure("Danger.TButton", padding=(12, 7), background="#772727", foreground="#ffffff")
         style.map("Danger.TButton", background=[("active", "#9b3030")])
         style.configure("TCheckbutton", background="#1d1d1d", foreground="#e7e7e7")
+        style.map(
+            "TCheckbutton",
+            background=[("active", "#1d1d1d"), ("focus", "#1d1d1d")],
+            foreground=[("active", "#e7e7e7"), ("focus", "#e7e7e7")],
+        )
         style.configure(
             "Dark.TCombobox",
             fieldbackground="#101010",
