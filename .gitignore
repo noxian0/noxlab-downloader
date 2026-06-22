@@ -1,7 +1,9 @@
 downloads/
+release/
 __pycache__/
 *.py[cod]
 *.log
+*.lnk
 .venv/
 venv/
 env/

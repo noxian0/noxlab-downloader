@@ -147,7 +147,12 @@ def browser_cookie_source(browser: str) -> str:
 
 
 def yt_dlp_command() -> list[str]:
-    return [sys.executable, "-m", "yt_dlp"]
+    python_exe = Path(sys.executable)
+    if python_exe.name.lower() == "pythonw.exe":
+        console_python = python_exe.with_name("python.exe")
+        if console_python.exists():
+            python_exe = console_python
+    return [str(python_exe), "-m", "yt_dlp"]
 
 
 def ensure_engine() -> None:

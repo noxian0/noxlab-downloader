@@ -4,4 +4,8 @@ cd /d "%~dp0"
 chcp 65001 >nul
 title NoxLab Downloader
 mode con: cols=132 lines=42 >nul 2>nul
-python "%~dp0downloader.py" %*
+if exist "%~dp0.venv\Scripts\python.exe" (
+    "%~dp0.venv\Scripts\python.exe" "%~dp0downloader.py" %*
+) else (
+    python "%~dp0downloader.py" %*
+)

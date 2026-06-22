@@ -2,9 +2,9 @@
 
 ![Main Menu](img/noxlabdl.png)
 
-NoxLab Downloader is a Windows command prompt tool for downloading video or
-audio from links supported by `yt-dlp`, including YouTube, Instagram, TikTok,
-X/Twitter, and many other sites.
+NoxLab Downloader is a Windows app and command prompt tool for downloading
+video or audio from links supported by `yt-dlp`, including YouTube, Instagram,
+TikTok, X/Twitter, SoundCloud, and many other sites.
 
 Downloads are saved in the `downloads` folder and are marked with `[NOXLAB]`
 in the filename.
@@ -58,12 +58,13 @@ setup.bat
 
 `setup.bat` does this on your PC:
 
-```bat
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-```
+1. Creates a local `.venv` Python environment inside the project folder.
+2. Installs the required Python packages into that local environment.
+3. Creates a `downloads` folder.
+4. Creates a `NoxLab Downloader` shortcut on your desktop.
+5. Creates a `NoxLab Downloader` shortcut inside the project folder.
 
-That installs these Python packages into your Python environment:
+The setup installs these Python packages:
 
 - `yt-dlp`
 - `imageio-ffmpeg`
@@ -73,13 +74,21 @@ files anywhere. It only installs the dependencies needed by the downloader.
 
 ## Start The Tool
 
-Double-click:
+Recommended start method:
 
-```bat
-noxdl.bat
+```text
+NoxLab Downloader
 ```
 
-Or open Command Prompt in this folder and run:
+Use the shortcut created on your desktop or inside the project folder.
+
+You can also double-click the windowed launcher:
+
+```bat
+NOXLAB_DOWNLOADER.pyw
+```
+
+Command prompt mode is still available:
 
 ```bat
 noxdl.bat
@@ -88,7 +97,7 @@ noxdl.bat
 
 ## Options
 
-When using interactive mode, you can choose:
+When using the app or command prompt mode, you can choose:
 
 - video with sound
 - audio only
@@ -97,6 +106,7 @@ When using interactive mode, you can choose:
 - output format
 - whether to use browser cookies for login-only links
 - whether to download a full playlist
+- an optional proxy for country/region-blocked links
 
 For MP4 video downloads, the tool prefers M4A/AAC audio so the result plays
 properly in Windows' built-in video players.
@@ -161,6 +171,8 @@ NoxLab Downloader runs locally on your PC. During normal use it can:
 
 - create a `downloads` folder
 - save downloaded video/audio files into that folder
+- create a local `.venv` folder during setup
+- create desktop and folder shortcuts during setup
 - run `yt-dlp` through Python
 - run FFmpeg through `imageio-ffmpeg`
 - contact the website from the link you paste
