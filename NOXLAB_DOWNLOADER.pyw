@@ -51,6 +51,10 @@ class DownloaderApp(tk.Tk):
             style.theme_use("clam")
         except tk.TclError:
             pass
+        self.option_add("*TCombobox*Listbox.background", "#101010")
+        self.option_add("*TCombobox*Listbox.foreground", "#ffffff")
+        self.option_add("*TCombobox*Listbox.selectBackground", "#353535")
+        self.option_add("*TCombobox*Listbox.selectForeground", "#ffffff")
         style.configure("Root.TFrame", background="#121212")
         style.configure("Panel.TFrame", background="#1d1d1d", borderwidth=1, relief="solid")
         style.configure("TLabel", background="#121212", foreground="#e7e7e7")
@@ -62,8 +66,36 @@ class DownloaderApp(tk.Tk):
         style.configure("Danger.TButton", padding=(12, 7), background="#772727", foreground="#ffffff")
         style.map("Danger.TButton", background=[("active", "#9b3030")])
         style.configure("TCheckbutton", background="#1d1d1d", foreground="#e7e7e7")
-        style.configure("TCombobox", fieldbackground="#252525", background="#252525", foreground="#f2f2f2")
-        style.configure("TEntry", fieldbackground="#252525", foreground="#f2f2f2")
+        style.configure(
+            "Dark.TCombobox",
+            fieldbackground="#101010",
+            background="#2b2b2b",
+            foreground="#ffffff",
+            arrowcolor="#ffffff",
+            bordercolor="#4a4a4a",
+            lightcolor="#4a4a4a",
+            darkcolor="#4a4a4a",
+            selectbackground="#353535",
+            selectforeground="#ffffff",
+        )
+        style.map(
+            "Dark.TCombobox",
+            fieldbackground=[("readonly", "#101010"), ("active", "#101010"), ("focus", "#101010")],
+            foreground=[("readonly", "#ffffff"), ("active", "#ffffff"), ("focus", "#ffffff")],
+            background=[("readonly", "#2b2b2b"), ("active", "#3a3a3a")],
+            selectbackground=[("readonly", "#353535")],
+            selectforeground=[("readonly", "#ffffff")],
+        )
+        style.configure(
+            "Dark.TEntry",
+            fieldbackground="#101010",
+            foreground="#ffffff",
+            insertcolor="#ffffff",
+            bordercolor="#4a4a4a",
+            lightcolor="#4a4a4a",
+            darkcolor="#4a4a4a",
+        )
+        style.map("Dark.TEntry", fieldbackground=[("focus", "#101010")], foreground=[("focus", "#ffffff")])
 
     def _build_ui(self) -> None:
         root = ttk.Frame(self, style="Root.TFrame", padding=16)
@@ -97,25 +129,25 @@ class DownloaderApp(tk.Tk):
         self.playlist_var = tk.BooleanVar(value=False)
 
         ttk.Label(form, text="Link", style="Panel.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 8), pady=6)
-        ttk.Entry(form, textvariable=self.url_var).grid(row=0, column=1, columnspan=3, sticky="ew", pady=6)
+        ttk.Entry(form, textvariable=self.url_var, style="Dark.TEntry").grid(row=0, column=1, columnspan=3, sticky="ew", pady=6)
 
         ttk.Label(form, text="Mode", style="Panel.TLabel").grid(row=1, column=0, sticky="w", padx=(0, 8), pady=6)
-        self.mode_box = ttk.Combobox(form, textvariable=self.mode_var, values=("video", "audio", "mute"), state="readonly", width=14)
+        self.mode_box = ttk.Combobox(form, textvariable=self.mode_var, values=("video", "audio", "mute"), state="readonly", width=14, style="Dark.TCombobox")
         self.mode_box.grid(row=1, column=1, sticky="w", pady=6)
         self.mode_box.bind("<<ComboboxSelected>>", lambda _event: self._update_format_choices())
 
         ttk.Label(form, text="Resolution", style="Panel.TLabel").grid(row=1, column=2, sticky="w", padx=(20, 8), pady=6)
-        ttk.Combobox(form, textvariable=self.resolution_var, values=downloader.RESOLUTIONS, state="readonly", width=14).grid(row=1, column=3, sticky="w", pady=6)
+        ttk.Combobox(form, textvariable=self.resolution_var, values=downloader.RESOLUTIONS, state="readonly", width=14, style="Dark.TCombobox").grid(row=1, column=3, sticky="w", pady=6)
 
         ttk.Label(form, text="Format", style="Panel.TLabel").grid(row=2, column=0, sticky="w", padx=(0, 8), pady=6)
-        self.format_box = ttk.Combobox(form, textvariable=self.format_var, state="readonly", width=14)
+        self.format_box = ttk.Combobox(form, textvariable=self.format_var, state="readonly", width=14, style="Dark.TCombobox")
         self.format_box.grid(row=2, column=1, sticky="w", pady=6)
 
         ttk.Label(form, text="Cookies", style="Panel.TLabel").grid(row=2, column=2, sticky="w", padx=(20, 8), pady=6)
-        ttk.Combobox(form, textvariable=self.cookies_var, values=downloader.COOKIE_BROWSERS, state="readonly", width=14).grid(row=2, column=3, sticky="w", pady=6)
+        ttk.Combobox(form, textvariable=self.cookies_var, values=downloader.COOKIE_BROWSERS, state="readonly", width=14, style="Dark.TCombobox").grid(row=2, column=3, sticky="w", pady=6)
 
         ttk.Label(form, text="Proxy", style="Panel.TLabel").grid(row=3, column=0, sticky="w", padx=(0, 8), pady=6)
-        ttk.Entry(form, textvariable=self.proxy_var).grid(row=3, column=1, columnspan=2, sticky="ew", pady=6)
+        ttk.Entry(form, textvariable=self.proxy_var, style="Dark.TEntry").grid(row=3, column=1, columnspan=2, sticky="ew", pady=6)
         ttk.Checkbutton(form, text="Download playlist", variable=self.playlist_var).grid(row=3, column=3, sticky="w", pady=6)
 
         actions = ttk.Frame(root, style="Root.TFrame")
