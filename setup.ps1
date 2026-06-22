@@ -6,7 +6,7 @@ $VenvDir = Join-Path $ProjectRoot ".venv"
 $Requirements = Join-Path $ProjectRoot "requirements.txt"
 $GuiLauncher = Join-Path $ProjectRoot "NOXLAB_DOWNLOADER.pyw"
 $CmdLauncher = Join-Path $ProjectRoot "noxdl.bat"
-$IconPath = Join-Path $ProjectRoot "assets\noxlab_downloader.ico"
+$IconPath = Join-Path $ProjectRoot "assets\noxlab_downloader_v2.ico"
 
 function Write-Step {
     param([string]$Message)

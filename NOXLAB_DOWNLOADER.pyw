@@ -33,10 +33,19 @@ class DownloaderApp(tk.Tk):
         self.configure(bg="#121212")
         self.process: subprocess.Popen[str] | None = None
 
-        icon_path = Path(__file__).with_name("assets") / "noxlab_downloader.ico"
-        if icon_path.exists():
+        asset_dir = Path(__file__).resolve().parent / "assets"
+        icon_png = asset_dir / "noxlab_downloader_icon.png"
+        icon_ico = asset_dir / "noxlab_downloader_v2.ico"
+        self._window_icon: tk.PhotoImage | None = None
+        if icon_png.exists():
             try:
-                self.iconbitmap(str(icon_path))
+                self._window_icon = tk.PhotoImage(file=str(icon_png))
+                self.iconphoto(True, self._window_icon)
+            except tk.TclError:
+                self._window_icon = None
+        if icon_ico.exists():
+            try:
+                self.iconbitmap(default=str(icon_ico))
             except tk.TclError:
                 pass
 
