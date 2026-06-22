@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import ctypes
 import os
 from pathlib import Path
 import subprocess
@@ -14,6 +15,7 @@ import downloader
 
 
 APP_TITLE = "NoxLab Downloader"
+APP_USER_MODEL_ID = "NoxLab.Downloader.App"
 ASCII_TITLE = r"""
  _   _  _____ __   __ _       ___   ______        ____                      _                 _
 | \ | |/  _  \\ \ / /| |     / _ \  | ___ \      |  _ \  _____      ___ __ | | ___   __ _  __| | ___ _ __
@@ -33,26 +35,65 @@ class DownloaderApp(tk.Tk):
         self.configure(bg="#121212")
         self.process: subprocess.Popen[str] | None = None
 
-        asset_dir = Path(__file__).resolve().parent / "assets"
-        icon_png = asset_dir / "noxlab_downloader_icon.png"
-        icon_ico = asset_dir / "noxlab_downloader_v2.ico"
+        self.asset_dir = Path(__file__).resolve().parent / "assets"
+        self.icon_png = self.asset_dir / "noxlab_downloader_icon.png"
+        self.icon_ico = self.asset_dir / "noxlab_downloader_window.ico"
         self._window_icon: tk.PhotoImage | None = None
-        if icon_png.exists():
-            try:
-                self._window_icon = tk.PhotoImage(file=str(icon_png))
-                self.iconphoto(True, self._window_icon)
-            except tk.TclError:
-                self._window_icon = None
-        if icon_ico.exists():
-            try:
-                self.iconbitmap(default=str(icon_ico))
-            except tk.TclError:
-                pass
+        self._native_icon_handles: list[int] = []
+        self._apply_window_icon()
 
         self._build_style()
         self._build_ui()
         self._update_format_choices()
         self._node_warning()
+        self.after(250, self._apply_window_icon)
+
+    def _apply_window_icon(self) -> None:
+        if self.icon_png.exists():
+            try:
+                if self._window_icon is None:
+                    self._window_icon = tk.PhotoImage(file=str(self.icon_png))
+                self.iconphoto(True, self._window_icon)
+            except tk.TclError:
+                self._window_icon = None
+        if self.icon_ico.exists():
+            try:
+                self.iconbitmap(default=str(self.icon_ico))
+                self.wm_iconbitmap(default=str(self.icon_ico))
+            except tk.TclError:
+                pass
+        self._apply_native_windows_icon()
+
+    def _apply_native_windows_icon(self) -> None:
+        if os.name != "nt" or not self.icon_ico.exists():
+            return
+        try:
+            hwnd = int(self.winfo_id())
+            user32 = ctypes.windll.user32
+            user32.LoadImageW.restype = ctypes.c_void_p
+            user32.SendMessageW.restype = ctypes.c_void_p
+            user32.GetParent.restype = ctypes.c_void_p
+            image_icon = 1
+            load_from_file = 0x00000010
+            wm_seticon = 0x0080
+            icon_small = 0
+            icon_big = 1
+            small = user32.LoadImageW(None, str(self.icon_ico), image_icon, 16, 16, load_from_file)
+            big = user32.LoadImageW(None, str(self.icon_ico), image_icon, 32, 32, load_from_file)
+            if small:
+                user32.SendMessageW(hwnd, wm_seticon, icon_small, small)
+                self._native_icon_handles.append(small)
+            if big:
+                user32.SendMessageW(hwnd, wm_seticon, icon_big, big)
+                self._native_icon_handles.append(big)
+            parent = user32.GetParent(hwnd)
+            if parent:
+                if small:
+                    user32.SendMessageW(parent, wm_seticon, icon_small, small)
+                if big:
+                    user32.SendMessageW(parent, wm_seticon, icon_big, big)
+        except Exception:
+            pass
 
     def _build_style(self) -> None:
         style = ttk.Style(self)
@@ -327,9 +368,19 @@ class DownloaderApp(tk.Tk):
 
 
 def main() -> int:
+    set_windows_app_user_model_id()
     app = DownloaderApp()
     app.mainloop()
     return 0
+
+
+def set_windows_app_user_model_id() -> None:
+    if os.name != "nt":
+        return
+    try:
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_USER_MODEL_ID)
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":
