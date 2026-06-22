@@ -68,6 +68,7 @@ class DownloaderApp(tk.Tk):
         style.configure("Panel.TFrame", background="#1d1d1d", borderwidth=1, relief="solid")
         style.configure("TLabel", background="#121212", foreground="#e7e7e7")
         style.configure("Panel.TLabel", background="#1d1d1d", foreground="#e7e7e7")
+        style.configure("PanelMuted.TLabel", background="#1d1d1d", foreground="#9b9b9b")
         style.configure("Muted.TLabel", background="#121212", foreground="#9b9b9b")
         style.configure("Accent.TLabel", background="#121212", foreground="#ff4b4b")
         style.configure("TButton", padding=(12, 7), background="#2b2b2b", foreground="#f2f2f2")
@@ -158,6 +159,12 @@ class DownloaderApp(tk.Tk):
         ttk.Label(form, text="Proxy", style="Panel.TLabel").grid(row=3, column=0, sticky="w", padx=(0, 8), pady=6)
         ttk.Entry(form, textvariable=self.proxy_var, style="Dark.TEntry").grid(row=3, column=1, columnspan=2, sticky="ew", pady=6)
         ttk.Checkbutton(form, text="Download playlist", variable=self.playlist_var).grid(row=3, column=3, sticky="w", pady=6)
+        proxy_help = ttk.Label(
+            form,
+            text="Optional. Use only if you have a proxy URL for region blocks, e.g. http://127.0.0.1:8080 or socks5://127.0.0.1:1080.",
+            style="PanelMuted.TLabel",
+        )
+        proxy_help.grid(row=4, column=1, columnspan=3, sticky="w", pady=(0, 6))
 
         actions = ttk.Frame(root, style="Root.TFrame")
         actions.pack(fill="x", pady=(0, 12))

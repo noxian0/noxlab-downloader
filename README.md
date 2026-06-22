@@ -153,6 +153,35 @@ If you have a proxy URL, you can pass it directly:
 noxdl.bat "https://soundcloud.com/example/track" --proxy "http://127.0.0.1:8080"
 ```
 
+## Proxy Box
+
+The proxy box is optional. Leave it empty if you do not have a proxy.
+
+A proxy tells yt-dlp to send the download request through another server. This
+can help when a song/video is blocked in your country, but only if the proxy is
+in a country where the content is available.
+
+Examples:
+
+```text
+http://127.0.0.1:8080
+socks5://127.0.0.1:1080
+http://username:password@proxy.example.com:8080
+```
+
+Use the proxy box when:
+
+- a link is country/region blocked
+- your VPN app gives you a local proxy address
+- you have a system/proxy service that works outside the browser
+
+Do not put a normal website link in the proxy box. The normal video/song link
+goes in the Link box. The proxy box only accepts proxy server addresses.
+
+Opera GX VPN only works inside Opera GX. It does not automatically affect
+NoxLab Downloader, Python, yt-dlp, or FFmpeg. For region blocks, use a
+system-wide VPN or a proxy URL.
+
 Show every format available for a link:
 
 ```bat
