@@ -41,12 +41,17 @@ class DownloaderApp(tk.Tk):
         self._window_icon: tk.PhotoImage | None = None
         self._native_icon_handles: list[int] = []
         self._apply_window_icon()
+        self._apply_dark_title_bar()
 
         self._build_style()
         self._build_ui()
         self._update_format_choices()
         self._node_warning()
-        self.after(250, self._apply_window_icon)
+        self.after(250, self._refresh_window_chrome)
+
+    def _refresh_window_chrome(self) -> None:
+        self._apply_window_icon()
+        self._apply_dark_title_bar()
 
     def _apply_window_icon(self) -> None:
         if self.icon_png.exists():
@@ -92,6 +97,37 @@ class DownloaderApp(tk.Tk):
                     user32.SendMessageW(parent, wm_seticon, icon_small, small)
                 if big:
                     user32.SendMessageW(parent, wm_seticon, icon_big, big)
+        except Exception:
+            pass
+
+    def _apply_dark_title_bar(self) -> None:
+        if os.name != "nt":
+            return
+        try:
+            hwnd = int(self.winfo_id())
+            user32 = ctypes.windll.user32
+            dwmapi = ctypes.windll.dwmapi
+            user32.GetParent.restype = ctypes.c_void_p
+            handles = [hwnd]
+            parent = user32.GetParent(hwnd)
+            if parent:
+                handles.append(parent)
+
+            dark_enabled = ctypes.c_int(1)
+            caption_color = ctypes.c_int(0x202020)
+            text_color = ctypes.c_int(0xD0D0D0)
+            border_color = ctypes.c_int(0x3A3A3A)
+
+            for handle in dict.fromkeys(handles):
+                for attribute in (20, 19):
+                    dwmapi.DwmSetWindowAttribute(
+                        handle,
+                        attribute,
+                        ctypes.byref(dark_enabled),
+                        ctypes.sizeof(dark_enabled),
+                    )
+                for attribute, value in ((35, caption_color), (36, text_color), (34, border_color)):
+                    dwmapi.DwmSetWindowAttribute(handle, attribute, ctypes.byref(value), ctypes.sizeof(value))
         except Exception:
             pass
 
