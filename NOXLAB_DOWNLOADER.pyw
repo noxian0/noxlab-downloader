@@ -326,6 +326,10 @@ class DownloaderApp(tk.Tk):
         if not args.url:
             messagebox.showwarning(APP_TITLE, "Paste a link first.")
             return
+        if not downloader.full_ffmpeg_available():
+            messagebox.showerror(APP_TITLE, downloader.ffmpeg_setup_message())
+            self.log(downloader.ffmpeg_setup_message(), "error")
+            return
         try:
             downloader.validate_args(args)
         except SystemExit:

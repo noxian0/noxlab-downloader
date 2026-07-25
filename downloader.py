@@ -11,6 +11,8 @@ from pathlib import Path
 
 
 APP_NAME = "Noxlab Downloader"
+PROJECT_DIR = Path(__file__).resolve().parent
+PORTABLE_FFMPEG_BIN = PROJECT_DIR / "tools" / "ffmpeg" / "bin"
 VIDEO_FORMATS = ("mp4", "mkv", "webm")
 AUDIO_FORMATS = ("mp3", "m4a", "wav", "flac", "opus")
 RESOLUTIONS = ("best", "2160", "1440", "1080", "720", "480", "360", "240")
@@ -125,16 +127,30 @@ def detect_js_runtime(choice: str) -> str | None:
 
 
 def detect_ffmpeg() -> str | None:
-    ffmpeg_path = shutil.which("ffmpeg")
-    if ffmpeg_path:
-        return ffmpeg_path
+    """Return an FFmpeg folder only when it also contains ffprobe."""
+    portable_ffmpeg = PORTABLE_FFMPEG_BIN / "ffmpeg.exe"
+    portable_ffprobe = PORTABLE_FFMPEG_BIN / "ffprobe.exe"
+    if portable_ffmpeg.is_file() and portable_ffprobe.is_file():
+        return str(PORTABLE_FFMPEG_BIN)
 
-    try:
-        import imageio_ffmpeg
-    except ImportError:
+    ffmpeg_path = shutil.which("ffmpeg")
+    ffprobe_path = shutil.which("ffprobe")
+    if not ffmpeg_path or not ffprobe_path:
         return None
 
-    return imageio_ffmpeg.get_ffmpeg_exe()
+    ffmpeg_dir = Path(ffmpeg_path).resolve().parent
+    ffprobe_dir = Path(ffprobe_path).resolve().parent
+    if ffmpeg_dir == ffprobe_dir:
+        return str(ffmpeg_dir)
+    return None
+
+
+def full_ffmpeg_available() -> bool:
+    return detect_ffmpeg() is not None
+
+
+def ffmpeg_setup_message() -> str:
+    return "Full FFmpeg (ffmpeg.exe and ffprobe.exe) is missing. Run setup.bat, then try again."
 
 
 def browser_cookie_source(browser: str) -> str:
@@ -379,8 +395,12 @@ def video_selector(resolution: str, muted: bool, output_format: str) -> str:
     if output_format == "mp4":
         return (
             f"bestvideo{height_filter}[ext=mp4]+bestaudio[ext=m4a]/"
+            f"bestvideo{height_filter}[ext=mp4]+bestaudio[acodec^=mp4a]/"
+            f"bestvideo{height_filter}+bestaudio[ext=m4a]/"
             f"best{height_filter}[ext=mp4]/"
-            "best[ext=mp4]"
+            "best[ext=mp4]/"
+            f"bestvideo{height_filter}+bestaudio/"
+            f"best{height_filter}/best"
         )
 
     return (
@@ -445,6 +465,9 @@ def build_download_command(args: argparse.Namespace) -> list[str]:
             "--merge-output-format",
             args.format,
         ]
+        if not muted and args.format == "mp4":
+            # Preserve the video stream while making fallback audio Windows-friendly.
+            command += ["--postprocessor-args", "Merger+ffmpeg_o:-c:a aac"]
 
     command.append(args.url)
     return command
@@ -505,6 +528,10 @@ def print_download_summary(result: int, output_dir: Path, files: list[Path]) -> 
 
 
 def run_download(args: argparse.Namespace, wait_for_enter: bool = False) -> int:
+    if not args.list_formats and not full_ffmpeg_available():
+        print(color_text(ffmpeg_setup_message(), "red"))
+        return 1
+
     output_dir = Path(args.output)
     before = snapshot_output_files(output_dir) if not args.list_formats else {}
     command = build_download_command(args)

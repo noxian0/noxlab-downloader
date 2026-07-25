@@ -59,21 +59,18 @@ yt-dlp
 - License: Unlicense, according to the installed package metadata.
 - NoxLab Downloader calls yt-dlp through Python but does not own yt-dlp.
 
-imageio-ffmpeg
-
-- Purpose: provides a Python wrapper/helper for using FFmpeg.
-- License: BSD 2-Clause License, according to the installed package metadata.
-- NoxLab Downloader uses it to find and run an FFmpeg executable.
-
 FFmpeg
 
-- Purpose: merges separate video/audio streams and converts audio/video formats.
-- License: the bundled executable reports GNU General Public License version 3
-  or later when queried with `ffmpeg -L`.
-- NoxLab Downloader does not own FFmpeg.
+- Purpose: setup downloads a portable FFmpeg Essentials build that includes
+  `ffmpeg.exe` and `ffprobe.exe`. These tools inspect media files, merge
+  separate video/audio streams, and convert audio/video formats.
+- Source: the setup downloads the FFmpeg Essentials archive from gyan.dev.
+- License: the downloaded archive includes its own license notice. The FFmpeg
+  license depends on the downloaded build and can be viewed with `ffmpeg -L`.
+- NoxLab Downloader does not own FFmpeg or the FFmpeg Essentials build.
 
 This custom license does not replace, remove, or change the licenses of yt-dlp,
-imageio-ffmpeg, FFmpeg, or any other third-party dependency.
+FFmpeg, or any other third-party dependency.
 
 7. Agreement
 

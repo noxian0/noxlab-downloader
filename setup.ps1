@@ -7,6 +7,9 @@ $Requirements = Join-Path $ProjectRoot "requirements.txt"
 $GuiLauncher = Join-Path $ProjectRoot "NOXLAB_DOWNLOADER.pyw"
 $CmdLauncher = Join-Path $ProjectRoot "noxdl.bat"
 $IconPath = Join-Path $ProjectRoot "assets\noxlab_downloader_v3.ico"
+$FfmpegDir = Join-Path $ProjectRoot "tools\ffmpeg"
+$FfmpegBin = Join-Path $FfmpegDir "bin"
+$FfmpegUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
 
 function Write-Step {
     param([string]$Message)
@@ -75,6 +78,69 @@ function New-AppShortcut {
     $shortcut.Save()
 }
 
+function Test-FullFfmpeg {
+    return (Test-Path -LiteralPath (Join-Path $FfmpegBin "ffmpeg.exe")) -and
+        (Test-Path -LiteralPath (Join-Path $FfmpegBin "ffprobe.exe"))
+}
+
+function Install-FullFfmpeg {
+    if (Test-FullFfmpeg) {
+        Write-Host "Full FFmpeg is already installed." -ForegroundColor DarkGray
+        return
+    }
+
+    Write-Step "Downloading full FFmpeg tools"
+    Write-Host "Downloading FFmpeg Essentials (includes ffmpeg.exe and ffprobe.exe)..." -ForegroundColor DarkGray
+
+    $TempRoot = Join-Path ([System.IO.Path]::GetTempPath()) "noxlab-ffmpeg-$PID"
+    $ArchivePath = "$TempRoot.zip"
+    try {
+        New-Item -ItemType Directory -Force -Path $TempRoot | Out-Null
+        Invoke-WebRequest -Uri $FfmpegUrl -OutFile $ArchivePath
+        Expand-Archive -LiteralPath $ArchivePath -DestinationPath $TempRoot -Force
+
+        $SourceFfmpeg = Get-ChildItem -LiteralPath $TempRoot -Filter "ffmpeg.exe" -File -Recurse |
+            Where-Object { $_.Directory.Name -eq "bin" } |
+            Select-Object -First 1
+        if (-not $SourceFfmpeg) {
+            throw "The downloaded FFmpeg archive did not contain ffmpeg.exe."
+        }
+        $SourceBin = $SourceFfmpeg.Directory.FullName
+        $SourceFfprobe = Join-Path $SourceBin "ffprobe.exe"
+        if (-not (Test-Path -LiteralPath $SourceFfprobe)) {
+            throw "The downloaded FFmpeg archive did not contain ffprobe.exe."
+        }
+
+        if (Test-Path -LiteralPath $FfmpegDir) {
+            Remove-Item -LiteralPath $FfmpegDir -Recurse -Force
+        }
+        New-Item -ItemType Directory -Force -Path $FfmpegBin | Out-Null
+        Copy-Item -LiteralPath (Join-Path $SourceBin "ffmpeg.exe") -Destination $FfmpegBin -Force
+        Copy-Item -LiteralPath $SourceFfprobe -Destination $FfmpegBin -Force
+
+        $SourceRoot = [System.IO.Directory]::GetParent($SourceBin).FullName
+        foreach ($Notice in @("LICENSE.txt", "README.txt")) {
+            $NoticePath = Join-Path $SourceRoot $Notice
+            if (Test-Path -LiteralPath $NoticePath) {
+                Copy-Item -LiteralPath $NoticePath -Destination $FfmpegDir -Force
+            }
+        }
+
+        & (Join-Path $FfmpegBin "ffmpeg.exe") -version | Select-Object -First 1
+        if ($LASTEXITCODE -ne 0) {
+            throw "The installed ffmpeg.exe tool could not be started."
+        }
+        & (Join-Path $FfmpegBin "ffprobe.exe") -version | Select-Object -First 1
+        if ($LASTEXITCODE -ne 0) {
+            throw "The installed ffprobe.exe tool could not be started."
+        }
+    }
+    finally {
+        Remove-Item -LiteralPath $ArchivePath -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 Write-Step "Preparing NoxLab Downloader setup"
 
 $pythonInfo = Find-SupportedPython
@@ -99,6 +165,8 @@ if (-not (Test-Path -LiteralPath $VenvPythonw)) {
 Write-Step "Installing required packages"
 & $VenvPython -m pip install --upgrade pip
 & $VenvPython -m pip install -r $Requirements
+
+Install-FullFfmpeg
 
 Write-Step "Checking app files"
 if (-not (Test-Path -LiteralPath $GuiLauncher)) {

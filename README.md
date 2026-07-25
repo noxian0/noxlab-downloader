@@ -20,9 +20,9 @@ This project uses third-party software that is not owned by NoxLab:
 
 - `yt-dlp`: the downloader engine. It reads the link, talks to the supported
   website, finds available media formats, and downloads the selected media.
-- `imageio-ffmpeg`: provides access to an FFmpeg executable from Python.
-- `FFmpeg`: merges video and audio streams, converts audio formats, and helps
-  create playable files such as MP4 with AAC audio.
+- `FFmpeg`: setup downloads a portable full FFmpeg Essentials build containing
+  `ffmpeg.exe` and `ffprobe.exe`. They merge video and audio streams, inspect
+  media files, convert audio formats, and help create playable MP4 files.
 
 See [LICENSE](LICENSE) for the NoxLab Downloader license and third-party
 notices.
@@ -60,17 +60,21 @@ setup.bat
 
 1. Creates a local `.venv` Python environment inside the project folder.
 2. Installs the required Python packages into that local environment.
-3. Creates a `downloads` folder.
-4. Creates a `NoxLab Downloader` shortcut on your desktop.
-5. Creates a `NoxLab Downloader` shortcut inside the project folder.
+3. Downloads a portable FFmpeg Essentials build into `tools\\ffmpeg`. This
+   includes `ffmpeg.exe` and `ffprobe.exe`, which are needed for sound,
+   merging video/audio streams, and audio-only conversions.
+4. Creates a `downloads` folder.
+5. Creates a `NoxLab Downloader` shortcut on your desktop.
+6. Creates a `NoxLab Downloader` shortcut inside the project folder.
 
 The setup installs these Python packages:
 
 - `yt-dlp`
-- `imageio-ffmpeg`
 
-It does not install the videos themselves, change your browser, or upload your
-files anywhere. It only installs the dependencies needed by the downloader.
+It also downloads the FFmpeg Essentials toolset from `gyan.dev` during setup.
+This is normally an approximately 80 MB one-time download. It does not install
+videos, change your browser, add FFmpeg to your system PATH, or upload your
+files anywhere. It only places the required tools inside this project folder.
 
 ## Start The Tool
 
@@ -110,6 +114,10 @@ When using the app or command prompt mode, you can choose:
 
 For MP4 video downloads, the tool prefers M4A/AAC audio so the result plays
 properly in Windows' built-in video players.
+
+If an older copy of the downloader says that `ffprobe.exe` is missing, run
+`setup.bat` again. The new setup installs the full FFmpeg toolset required for
+audio downloads and video/audio merging.
 
 ## Direct Commands
 
@@ -201,9 +209,12 @@ NoxLab Downloader runs locally on your PC. During normal use it can:
 - create a `downloads` folder
 - save downloaded video/audio files into that folder
 - create a local `.venv` folder during setup
+- download and store `ffmpeg.exe` and `ffprobe.exe` inside `tools\\ffmpeg`
+  during setup
 - create desktop and folder shortcuts during setup
 - run `yt-dlp` through Python
-- run FFmpeg through `imageio-ffmpeg`
+- run the bundled portable FFmpeg tools for media inspection, audio conversion,
+  and merging video with sound
 - contact the website from the link you paste
 - optionally read browser cookies if you choose `--cookies-browser` or select
   cookies in the menu
