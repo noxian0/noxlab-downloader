@@ -8,6 +8,7 @@ import subprocess
 import sys
 import unicodedata
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 APP_NAME = "Noxlab Downloader"
@@ -410,6 +411,20 @@ def video_selector(resolution: str, muted: bool, output_format: str) -> str:
     )
 
 
+def is_tiktok_url(url: str) -> bool:
+    hostname = urlparse(url).hostname or ""
+    return hostname.lower() == "tiktok.com" or hostname.lower().endswith(".tiktok.com")
+
+
+def tiktok_audio_source() -> str:
+    """Avoid TikTok ByteVC variants that can be labelled AAC but contain no audio."""
+    return (
+        "best[ext=mp4][vcodec^=h264][acodec!=none]/"
+        "best[ext=mp4][vcodec^=avc][acodec!=none]/"
+        "download"
+    )
+
+
 def build_download_command(args: argparse.Namespace) -> list[str]:
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -448,6 +463,7 @@ def build_download_command(args: argparse.Namespace) -> list[str]:
     ]
 
     if args.mode == "audio":
+        audio_source = tiktok_audio_source() if is_tiktok_url(args.url) else "bestaudio/best"
         command += [
             "--extract-audio",
             "--audio-format",
@@ -455,13 +471,18 @@ def build_download_command(args: argparse.Namespace) -> list[str]:
             "--audio-quality",
             "0",
             "-f",
-            "bestaudio/best",
+            audio_source,
         ]
     else:
         muted = args.mode == "mute"
+        selector = (
+            tiktok_audio_source()
+            if not muted and args.format == "mp4" and is_tiktok_url(args.url)
+            else video_selector(args.resolution, muted, args.format)
+        )
         command += [
             "-f",
-            video_selector(args.resolution, muted, args.format),
+            selector,
             "--merge-output-format",
             args.format,
         ]
