@@ -20,6 +20,8 @@ This project uses third-party software that is not owned by NoxLab:
 
 - `yt-dlp`: the downloader engine. It reads the link, talks to the supported
   website, finds available media formats, and downloads the selected media.
+- `curl-cffi`: a networking library used by yt-dlp to make supported
+  browser-like requests. TikTok may require this for its anti-bot checks.
 - `FFmpeg`: setup downloads a portable full FFmpeg Essentials build containing
   `ffmpeg.exe` and `ffprobe.exe`. They merge video and audio streams, inspect
   media files, convert audio formats, and help create playable MP4 files.
@@ -69,7 +71,7 @@ setup.bat
 
 The setup installs these Python packages:
 
-- `yt-dlp`
+- `yt-dlp`, including its `curl-cffi` browser-impersonation support
 
 It also downloads the FFmpeg Essentials toolset from `gyan.dev` during setup.
 This is normally an approximately 80 MB one-time download. It does not install
@@ -118,6 +120,10 @@ properly in Windows' built-in video players.
 If an older copy of the downloader says that `ffprobe.exe` is missing, run
 `setup.bat` again. The new setup installs the full FFmpeg toolset required for
 audio downloads and video/audio merging.
+
+For TikTok errors mentioning `impersonation` or an unexpected webpage response,
+click **Update Engine** in the app. It updates yt-dlp and installs its supported
+browser-request component (`curl-cffi`).
 
 ## Direct Commands
 
@@ -213,6 +219,8 @@ NoxLab Downloader runs locally on your PC. During normal use it can:
   during setup
 - create desktop and folder shortcuts during setup
 - run `yt-dlp` through Python
+- use yt-dlp's `curl-cffi` component for supported browser-like requests when
+  a site such as TikTok requires it
 - run the bundled portable FFmpeg tools for media inspection, audio conversion,
   and merging video with sound
 - contact the website from the link you paste

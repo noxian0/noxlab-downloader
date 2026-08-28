@@ -188,9 +188,21 @@ def ensure_engine() -> None:
 def update_engine() -> None:
     print("Updating yt-dlp...")
     subprocess.run(
-        [sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp"],
+        update_engine_command(),
         check=True,
     )
+
+
+def update_engine_command() -> list[str]:
+    """Install yt-dlp with its supported browser-impersonation backend."""
+    return [
+        yt_dlp_command()[0],
+        "-m",
+        "pip",
+        "install",
+        "--upgrade",
+        "yt-dlp[default,curl-cffi]",
+    ]
 
 
 def color_text(text: str, color: str) -> str:
@@ -214,6 +226,15 @@ def enable_windows_virtual_terminal() -> None:
     if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
         return
     kernel32.SetConsoleMode(handle, mode.value | 0x0004)
+
+
+def configure_text_output() -> None:
+    """Keep a non-UTF-8 Windows console from crashing on media titles."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="backslashreplace")
+        except (AttributeError, OSError):
+            pass
 
 
 def configure_interactive_console() -> None:
@@ -568,6 +589,7 @@ def run_download(args: argparse.Namespace, wait_for_enter: bool = False) -> int:
 
 
 def main() -> int:
+    configure_text_output()
     parser = build_parser()
     args = parser.parse_args()
 

@@ -59,6 +59,13 @@ yt-dlp
 - License: Unlicense, according to the installed package metadata.
 - NoxLab Downloader calls yt-dlp through Python but does not own yt-dlp.
 
+curl-cffi
+
+- Purpose: lets yt-dlp make supported browser-like network requests when a
+  website, including TikTok, requires browser impersonation for anti-bot checks.
+- License: MIT License, according to the package metadata.
+- NoxLab Downloader installs it as a yt-dlp dependency but does not own it.
+
 FFmpeg
 
 - Purpose: setup downloads a portable FFmpeg Essentials build that includes
@@ -70,7 +77,7 @@ FFmpeg
 - NoxLab Downloader does not own FFmpeg or the FFmpeg Essentials build.
 
 This custom license does not replace, remove, or change the licenses of yt-dlp,
-FFmpeg, or any other third-party dependency.
+curl-cffi, FFmpeg, or any other third-party dependency.
 
 7. Agreement
 

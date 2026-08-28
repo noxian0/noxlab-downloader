@@ -350,8 +350,8 @@ class DownloaderApp(tk.Tk):
             self.process.terminate()
 
     def _run_update_engine(self) -> None:
-        command = [downloader.yt_dlp_command()[0], "-m", "pip", "install", "--upgrade", "yt-dlp"]
-        self.after(0, lambda: self._start_process_ui("Updating yt-dlp..."))
+        command = downloader.update_engine_command()
+        self.after(0, lambda: self._start_process_ui("Updating yt-dlp and TikTok browser support..."))
         result = self._run_process(command)
         self.after(0, lambda: self._finish_process_ui("Update complete." if result == 0 else f"Update failed. Exit code: {result}", result == 0))
 
