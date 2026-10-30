@@ -34,6 +34,7 @@ class DownloaderApp(tk.Tk):
         self.minsize(980, 660)
         self.configure(bg="#121212")
         self.process: subprocess.Popen[str] | None = None
+        self.busy = False
 
         self.asset_dir = Path(__file__).resolve().parent / "assets"
         self.icon_png = self.asset_dir / "noxlab_downloader_icon.png"
@@ -259,8 +260,20 @@ class DownloaderApp(tk.Tk):
         self.stop_button = ttk.Button(actions, text="Stop", style="Danger.TButton", command=self.stop_download, state="disabled")
         self.stop_button.pack(side="right")
 
+        runtime_row = ttk.Frame(root, style="Root.TFrame")
+        runtime_row.pack(fill="x", pady=(0, 12))
+        self.node_button = ttk.Button(runtime_row, text="Install Node.js LTS", command=self.install_node)
+        self.node_button.pack(side="left")
+        self.node_status = tk.StringVar()
+        node_label = ttk.Label(runtime_row, textvariable=self.node_status, style="Muted.TLabel")
+        node_label.pack(side="left", fill="x", expand=True, padx=(12, 0))
+        node_label.bind("<Configure>", lambda event: node_label.configure(wraplength=max(1, event.width)))
+        self._refresh_node_status()
+
         self.status_var = tk.StringVar(value="Ready.")
-        ttk.Label(root, textvariable=self.status_var, style="Accent.TLabel").pack(anchor="w", pady=(0, 8))
+        status_label = ttk.Label(root, textvariable=self.status_var, style="Accent.TLabel")
+        status_label.pack(fill="x", pady=(0, 8))
+        status_label.bind("<Configure>", lambda event: status_label.configure(wraplength=max(1, event.width)))
 
         self.output = tk.Text(
             root,
@@ -289,7 +302,11 @@ class DownloaderApp(tk.Tk):
 
     def _node_warning(self) -> None:
         if not downloader.detect_js_runtime("auto"):
-            self.log("Node.js was not found. Some YouTube videos may fail until Node.js LTS is installed.", "muted")
+            self.log("Node.js LTS is recommended for YouTube. Use Install Node.js LTS if YouTube downloads fail.", "muted")
+
+    def _refresh_node_status(self) -> None:
+        installed = "Node.js detected. " if downloader.detect_js_runtime("node") else ""
+        self.node_status.set(installed + "Node.js LTS is recommended for YouTube downloads.")
 
     def log(self, text: str, tag: str | None = None) -> None:
         self.output.insert("end", text + "\n", tag)
@@ -314,13 +331,15 @@ class DownloaderApp(tk.Tk):
         args.playlist = self.playlist_var.get()
         return args
 
-    def set_running(self, running: bool) -> None:
+    def set_running(self, running: bool, cancellable: bool = True) -> None:
+        self.busy = running
         self.download_button.configure(state="disabled" if running else "normal")
         self.update_button.configure(state="disabled" if running else "normal")
-        self.stop_button.configure(state="normal" if running else "disabled")
+        self.node_button.configure(state="disabled" if running else "normal")
+        self.stop_button.configure(state="normal" if running and cancellable else "disabled")
 
     def start_download(self) -> None:
-        if self.process is not None:
+        if self.busy:
             return
         args = self.current_args()
         if not args.url:
@@ -336,14 +355,38 @@ class DownloaderApp(tk.Tk):
             messagebox.showerror(APP_TITLE, "Invalid download options.")
             return
 
+        self._start_process_ui("Downloading...")
         thread = threading.Thread(target=self._run_download, args=(args,), daemon=True)
         thread.start()
 
     def update_engine(self) -> None:
-        if self.process is not None:
+        if self.busy:
             return
+        self._start_process_ui("Updating yt-dlp and TikTok browser support...")
         thread = threading.Thread(target=self._run_update_engine, daemon=True)
         thread.start()
+
+    def install_node(self) -> None:
+        if self.busy:
+            return
+        self._start_process_ui("Downloading Node.js LTS. Complete the installer window when it opens.", cancellable=False)
+        threading.Thread(target=self._run_install_node, daemon=True).start()
+
+    def _run_install_node(self) -> None:
+        result = self._run_process(downloader.node_install_command())
+        available = downloader.detect_js_runtime("node")
+        ok = result == 0 and available is not None
+        if ok:
+            message = "Node.js is ready. Retry your YouTube download."
+        elif result == 0:
+            message = "Installer finished, but Node.js was not detected. Restart Windows if requested, then reopen the app."
+        else:
+            message = "Node.js installation did not finish. Check the error above and try Install Node.js LTS again."
+
+        def done() -> None:
+            self._refresh_node_status()
+            self._finish_process_ui(message, ok)
+        self.after(0, done)
 
     def stop_download(self) -> None:
         if self.process is not None:
@@ -351,15 +394,17 @@ class DownloaderApp(tk.Tk):
 
     def _run_update_engine(self) -> None:
         command = downloader.update_engine_command()
-        self.after(0, lambda: self._start_process_ui("Updating yt-dlp and TikTok browser support..."))
         result = self._run_process(command)
         self.after(0, lambda: self._finish_process_ui("Update complete." if result == 0 else f"Update failed. Exit code: {result}", result == 0))
 
     def _run_download(self, args: object) -> None:
         output_dir = Path(args.output)
-        before = downloader.snapshot_output_files(output_dir)
-        command = downloader.build_download_command(args)
-        self.after(0, lambda: self._start_process_ui("Downloading..."))
+        try:
+            before = downloader.snapshot_output_files(output_dir)
+            command = downloader.build_download_command(args)
+        except OSError as error:
+            self.after(0, lambda message=str(error): self._download_start_failed(message))
+            return
         self.after(0, lambda: self.log("Running: " + " ".join(f'"{part}"' if " " in part else part for part in command), "muted"))
         result = self._run_process(command)
         files = downloader.changed_output_files(output_dir, before)
@@ -376,7 +421,8 @@ class DownloaderApp(tk.Tk):
                 self.status_var.set("Done.")
             else:
                 self.log(f"Download failed. Exit code: {result}", "error")
-                self.log("Try updating the engine, browser cookies, Node.js LTS, or a system-wide VPN/proxy.", "error")
+                for message in downloader.download_failure_help():
+                    self.log(message, "error")
                 self.status_var.set("Download failed.")
             self.set_running(False)
             self.process = None
@@ -385,22 +431,32 @@ class DownloaderApp(tk.Tk):
 
     def _run_process(self, command: list[str]) -> int:
         creationflags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
-        self.process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            creationflags=creationflags,
-        )
-        assert self.process.stdout is not None
-        for line in self.process.stdout:
-            self.after(0, lambda text=line.rstrip(): self.log(text))
-        return self.process.wait()
+        try:
+            self.process = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                creationflags=creationflags,
+            )
+            assert self.process.stdout is not None
+            for line in self.process.stdout:
+                self.after(0, lambda text=line.rstrip(): self.log(text))
+            return self.process.wait()
+        except OSError as error:
+            self.after(0, lambda message=str(error): self.log(message, "error"))
+            return 1
 
-    def _start_process_ui(self, message: str) -> None:
-        self.set_running(True)
+    def _download_start_failed(self, message: str) -> None:
+        self.log(message, "error")
+        for hint in downloader.download_failure_help():
+            self.log(hint, "error")
+        self._finish_process_ui("Download failed.", False)
+
+    def _start_process_ui(self, message: str, cancellable: bool = True) -> None:
+        self.set_running(True, cancellable)
         self.status_var.set(message)
         self.log("")
         self.log(message, "muted")

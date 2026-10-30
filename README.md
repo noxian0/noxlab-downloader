@@ -18,6 +18,10 @@ You use this tool at your own risk.
 
 This project uses third-party software that is not owned by NoxLab:
 
+- `Python`: runs the app and command-line downloader; setup can install the
+  official Windows distribution for you.
+- `Node.js`: runs yt-dlp's JavaScript helper for YouTube; the app can download
+  and open its official LTS installer.
 - `yt-dlp`: the downloader engine. It reads the link, talks to the supported
   website, finds available media formats, and downloads the selected media.
 - `curl-cffi`: a networking library used by yt-dlp to make supported
@@ -31,43 +35,37 @@ notices.
 
 ## Setup
 
-Python is required to use this tool. Install Python 3.10 or newer from:
-
-https://www.python.org/downloads/
-
-During installation, enable this option:
-
-```text
-Add python.exe to PATH
-```
-
-Node.js LTS is strongly recommended and is required for some YouTube videos.
-Install it from:
-
-https://nodejs.org/
-
-After installing Node.js, close and reopen Command Prompt. You can check it with:
-
-```bat
-node --version
-```
-
-Run this once before using the downloader:
+Extract the ZIP into a folder you can write to, then double-click:
 
 ```bat
 setup.bat
 ```
 
+Python is required, but you do not need to download it yourself. If setup
+cannot find Python 3.10 or newer with Tkinter, it asks **Install Python from
+python.org now? [Y/n]**. Press Enter or type `y` to install Python 3.14.10 for
+your Windows account and continue setup automatically. Type `n` to cancel.
+The automatic installer supports 64-bit Windows (x64 and ARM64).
+
+An internet connection is required. Setup downloads the official Python
+installer, checks its publisher signature, and installs Python, pip and
+Tkinter. It adds Python to your user PATH. Existing supported installations
+are reused. You do not need Visual Studio Code.
+
+Manual installation remains available from [python.org](https://www.python.org/downloads/windows/).
+Include **pip**, **Tcl/Tk and IDLE**, and **Add python.exe to PATH**, then run
+`setup.bat` again.
+
 `setup.bat` does this on your PC:
 
-1. Creates a local `.venv` Python environment inside the project folder.
-2. Installs the required Python packages into that local environment.
-3. Downloads a portable FFmpeg Essentials build into `tools\\ffmpeg`. This
+1. Offers to install Python if a suitable installation is missing.
+2. Creates a local `.venv` Python environment inside the project folder.
+3. Installs the required Python packages into that local environment.
+4. Downloads a portable FFmpeg Essentials build into `tools\ffmpeg`. This
    includes `ffmpeg.exe` and `ffprobe.exe`, which are needed for sound,
    merging video/audio streams, and audio-only conversions.
-4. Creates a `downloads` folder.
-5. Creates a `NoxLab Downloader` shortcut on your desktop.
-6. Creates a `NoxLab Downloader` shortcut inside the project folder.
+5. Creates a `downloads` folder.
+6. Creates a `NoxLab Downloader` shortcut on your desktop and in the project folder.
 
 The setup installs these Python packages:
 
@@ -76,7 +74,32 @@ The setup installs these Python packages:
 It also downloads the FFmpeg Essentials toolset from `gyan.dev` during setup.
 This is normally an approximately 80 MB one-time download. It does not install
 videos, change your browser, add FFmpeg to your system PATH, or upload your
-files anywhere. It only places the required tools inside this project folder.
+files anywhere. The Python environment and FFmpeg tools are kept inside the
+project folder. Python itself is installed for your Windows account if you
+accept the installation option.
+
+## Node.js For YouTube
+
+**Node.js LTS is recommended for YouTube videos**, especially when a YouTube
+download fails. It runs the JavaScript helper used by yt-dlp for YouTube.
+
+1. Open NoxLab Downloader and click **Install Node.js LTS**.
+2. Wait for the official installer to download from [nodejs.org](https://nodejs.org/).
+3. Complete the Node.js setup window. Keep **Add to PATH** enabled and approve
+   the Windows administrator prompt if it appears. Extra build tools are not
+   needed for this downloader.
+4. Return to the app and retry the download once it reports Node.js is ready.
+
+The button chooses the latest LTS installer for your PC and checks its publisher
+signature before opening it. It can also be used to update an existing Node.js
+installation. Node.js is installed as a normal Windows program, outside the
+project folder; it can be removed through Windows Settings > Apps.
+Cancel the native installer to stop installation. If it requests a Windows
+restart, restart before retrying. If Node.js is still not detected after an
+otherwise successful install, close and reopen the app.
+
+**Update Engine** updates yt-dlp and its Python dependencies; use the separate
+**Install Node.js LTS** button to install or update Node.js.
 
 ## Start The Tool
 
@@ -124,6 +147,20 @@ audio downloads and video/audio merging.
 For TikTok errors mentioning `impersonation` or an unexpected webpage response,
 click **Update Engine** in the app. It updates yt-dlp and installs its supported
 browser-request component (`curl-cffi`).
+
+## If A Download Fails
+
+1. Click **Update Engine**, wait for completion, then retry.
+2. For YouTube, click **Install Node.js LTS**, complete the installer, and retry.
+3. If it still fails with **Access denied** or another file-permission error,
+   close the app, right-click the **NoxLab Downloader** shortcut and choose
+   **Run as administrator** (on Windows 11, look under **Show more options**).
+   Alternatively, move the project into a folder you own and run setup again.
+
+Administrator mode helps with Windows permissions; it does not fix unavailable
+videos, website restrictions, or missing login cookies. Read the actual error
+in the app output. For login-only videos, use the Cookies selector. Try a lower
+resolution or another format if the requested format is unavailable.
 
 ## Direct Commands
 
@@ -215,7 +252,12 @@ NoxLab Downloader runs locally on your PC. During normal use it can:
 - create a `downloads` folder
 - save downloaded video/audio files into that folder
 - create a local `.venv` folder during setup
-- download and store `ffmpeg.exe` and `ffprobe.exe` inside `tools\\ffmpeg`
+- download and install Python for your Windows account when you accept setup's
+  Python installation prompt
+- download and launch the official Node.js LTS installer when you click
+  **Install Node.js LTS**; the installer may change your system PATH and request
+  Windows administrator permission
+- download and store `ffmpeg.exe` and `ffprobe.exe` inside `tools\ffmpeg`
   during setup
 - create desktop and folder shortcuts during setup
 - run `yt-dlp` through Python

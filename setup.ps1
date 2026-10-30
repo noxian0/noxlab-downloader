@@ -10,6 +10,7 @@ $IconPath = Join-Path $ProjectRoot "assets\noxlab_downloader_v3.ico"
 $FfmpegDir = Join-Path $ProjectRoot "tools\ffmpeg"
 $FfmpegBin = Join-Path $FfmpegDir "bin"
 $FfmpegUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
+. (Join-Path $ProjectRoot "install-runtime.ps1")
 
 function Write-Step {
     param([string]$Message)
@@ -24,7 +25,7 @@ function Test-SupportedPython {
     )
 
     try {
-        $output = & $Command @Arguments -c "import sys; print(sys.executable); raise SystemExit(0 if sys.version_info >= (3, 10) else 1)" 2>$null
+        $output = & $Command @Arguments -c "import sys, tkinter, venv, ensurepip; print(sys.executable); raise SystemExit(0 if sys.version_info >= (3, 10) else 1)" 2>$null
         if ($LASTEXITCODE -eq 0 -and $output) {
             return [string]($output | Select-Object -Last 1)
         }
@@ -36,17 +37,29 @@ function Test-SupportedPython {
 }
 
 function Find-SupportedPython {
+    # Registered paths also work immediately after installation, before PATH refresh.
+    $registered = foreach ($key in @('HKCU:\Software\Python\PythonCore', 'HKLM:\Software\Python\PythonCore')) {
+        foreach ($versionKey in (Get-ChildItem -LiteralPath $key -ErrorAction SilentlyContinue)) {
+            $installKey = Get-Item -LiteralPath (Join-Path $versionKey.PSPath 'InstallPath') -ErrorAction SilentlyContinue
+            if ($installKey) { Join-Path $installKey.GetValue('') 'python.exe' }
+        }
+    }
     $candidates = @(
+        @{ Command = (Join-Path $VenvDir 'Scripts\python.exe'); Arguments = @() }
+    ) + @($registered | ForEach-Object { @{ Command = $_; Arguments = @() } }) + @(
         @{ Command = "py"; Arguments = @("-3") },
         @{ Command = "python"; Arguments = @() }
     )
 
     foreach ($candidate in $candidates) {
+        $resolvedCommand = Get-Command $candidate.Command -ErrorAction SilentlyContinue
+        if (-not $resolvedCommand) { continue }
+        if ($resolvedCommand.Source -like '*\Microsoft\WindowsApps\python.exe') { continue }
         $python = Test-SupportedPython -Command $candidate.Command -Arguments $candidate.Arguments
         if ($python) {
             return @{
-                Command = $candidate.Command
-                Arguments = $candidate.Arguments
+                Command = $python
+                Arguments = @()
                 Exe = $python
             }
         }
@@ -145,12 +158,21 @@ Write-Step "Preparing NoxLab Downloader setup"
 
 $pythonInfo = Find-SupportedPython
 if (-not $pythonInfo) {
-    throw "Python 3.10 or newer was not found. Install it from https://www.python.org/downloads/ and enable Add python.exe to PATH."
+    Write-Host 'Python 3.10+ with Tkinter was not found. Setup can download and install Python 3.14 for you.'
+    $answer = Read-Host 'Install Python from python.org now? [Y/n]'
+    if ($answer -and $answer.Trim().ToLowerInvariant() -notin @('y', 'yes')) {
+        throw 'Setup cancelled. Run setup.bat again when you are ready to install Python.'
+    }
+    Install-NoxlabRuntime -Name Python
+    $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User') + ';' + $env:Path
+    $pythonInfo = Find-SupportedPython
+    if (-not $pythonInfo) { throw 'Python could not be detected after installation. Reopen setup.bat to retry.' }
 }
 
 Write-Step "Creating local virtual environment"
 if (-not (Test-Path -LiteralPath $VenvDir)) {
     & $pythonInfo.Command @($pythonInfo.Arguments) -m venv $VenvDir
+    if ($LASTEXITCODE -ne 0) { throw 'Could not create the local Python environment.' }
 }
 
 $VenvPython = Join-Path $VenvDir "Scripts\python.exe"
@@ -164,7 +186,9 @@ if (-not (Test-Path -LiteralPath $VenvPythonw)) {
 
 Write-Step "Installing required packages"
 & $VenvPython -m pip install --upgrade pip
+if ($LASTEXITCODE -ne 0) { throw 'Could not update pip. Check your internet connection and retry setup.' }
 & $VenvPython -m pip install -r $Requirements
+if ($LASTEXITCODE -ne 0) { throw 'Could not install the required packages. Check the error above and retry setup.' }
 
 Install-FullFfmpeg
 

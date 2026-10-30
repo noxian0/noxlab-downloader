@@ -124,7 +124,44 @@ def detect_js_runtime(choice: str) -> str | None:
         path = shutil.which(runtime)
         if path:
             return f"{runtime}:{path}"
+        if runtime == "node" and os.name == "nt":
+            # The GUI keeps its old PATH when the Node installer changes Windows PATH.
+            import winreg
+
+            for hive, key in ((winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Node.js"),
+                              (winreg.HKEY_CURRENT_USER, r"SOFTWARE\Node.js")):
+                try:
+                    with winreg.OpenKey(hive, key) as registry_key:
+                        folder, _ = winreg.QueryValueEx(registry_key, "InstallPath")
+                    executable = Path(folder) / "node.exe"
+                    if executable.is_file():
+                        return f"node:{executable}"
+                except OSError:
+                    pass
+            for variable in ("ProgramW6432", "ProgramFiles", "ProgramFiles(x86)"):
+                folder = os.environ.get(variable)
+                if folder:
+                    executable = Path(folder) / "nodejs" / "node.exe"
+                    if executable.is_file():
+                        return f"node:{executable}"
     return None
+
+
+def node_install_command() -> list[str]:
+    return [
+        "powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
+        str(PROJECT_DIR / "install-runtime.ps1"), "-Runtime", "Node",
+    ]
+
+
+def download_failure_help() -> tuple[str, ...]:
+    return (
+        "Try Update Engine, then retry the download.",
+        "Node.js LTS is recommended for YouTube. Use Install Node.js LTS in the app if YouTube downloads fail.",
+        "If it still fails with Access denied or a file-permission error, close the app, right-click its shortcut and choose Run as administrator.",
+        "Administrator mode will not fix unavailable videos, site restrictions, or missing browser cookies.",
+        "For login-only links, select browser cookies; for region blocks, check your system-wide VPN/proxy.",
+    )
 
 
 def detect_ffmpeg() -> str | None:
@@ -556,7 +593,8 @@ def print_download_summary(result: int, output_dir: Path, files: list[Path]) -> 
     else:
         print(color_text(f"Download failed. Exit code: {result}", "red"))
         print("Try updating the engine with: noxdl.bat --update-engine")
-        print("If YouTube still fails, install Node.js LTS from https://nodejs.org/")
+        for message in download_failure_help()[1:4]:
+            print(message)
         print("For restricted/login-only links, retry with browser cookies enabled.")
         print("For country/region blocks, use a system-wide VPN or a proxy with --proxy.")
         print("If one resolution or format fails, try a lower resolution or MKV/WebM.")
